@@ -15,3 +15,12 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Custom placeholder color for Ant Design Input */
+.ant-input::placeholder {
+  color: #6b7280; /* Tailwind gray-500 */
+}
+
+.dark .ant-input::placeholder {
+  color: #a1a1aa; /* Tailwind gray-400 */
+}

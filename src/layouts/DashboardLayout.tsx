@@ -6,7 +6,6 @@ import {
     Menu,
     Button,
     Breadcrumb,
-    Drawer,
     Badge,
 } from 'antd';
 import { useEffect, useState } from 'react';
@@ -40,7 +39,6 @@ const DashboardLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [drawerVisible, setDrawerVisible] = useState(false);
     const theme = useSelector((state: RootState) => state.theme.value);
     const query = useSelector((state: RootState) => state.search.query);
     const dispatch = useDispatch();
@@ -62,7 +60,7 @@ const DashboardLayout = () => {
 
     useEffect(() => {
         dispatch(setSearchQuery(''));
-    }, [location.pathname]);
+    }, [location.pathname, dispatch]);
 
     useEffect(() => {
         if (!query) {
@@ -89,7 +87,7 @@ const DashboardLayout = () => {
             items={[
                 {
                     key: 'profile',
-                    label: <span className="hover:text-blue-500">Profile</span>,
+                    label: <span className="text-gray-800 dark:text-gray-100">Profile</span>,
                     icon: <User size={16} />,
                 },
                 {
@@ -138,11 +136,17 @@ const DashboardLayout = () => {
                     defaultSelectedKeys={[location.pathname]}
                     className="dark:bg-[#1f1f1f]"
                 >
-                    <Menu.Item key="/" icon={<LayoutDashboard size={18} />}>
+                    <Menu.Item
+                        key="/"
+                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
+                    >
                         <Link to="/">Dashboard</Link>
                     </Menu.Item>
                     {userRole === 'admin' && (
-                        <Menu.Item key="/settings" icon={<Settings size={18} />}>
+                        <Menu.Item
+                            key="/settings"
+                            icon={<Settings size={18} className="text-gray-700 dark:text-white" />}
+                        >
                             <Link to="/settings">Settings</Link>
                         </Menu.Item>
                     )}
@@ -155,17 +159,22 @@ const DashboardLayout = () => {
                     <div className="flex items-center gap-3">
                         <Button
                             type="text"
-                            icon={<LucideMenu size={20} />}
                             onClick={() => setCollapsed(!collapsed)}
-                        />
+                            className="text-gray-700 dark:text-white"
+                        >
+                            <LucideMenu size={20} />
+                        </Button>
                         <div className="relative w-64">
                             <Input
-                                prefix={<Search size={16} />}
+                                prefix={<Search size={16} className="text-gray-500 dark:text-gray-400" />}
                                 placeholder="Search..."
                                 value={query}
                                 onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-                                className="dark:bg-[#333] dark:text-white dark:placeholder-gray-400"
-                                style={{ background: theme === 'dark' ? '#333' : '#fff' }}
+                                className="dark:bg-[#333] dark:text-white"
+                                style={{
+                                    backgroundColor: theme === 'dark' ? '#333' : '#fff',
+                                    color: theme === 'dark' ? '#fff' : '#000',
+                                }}
                                 onFocus={() => query && setShowSuggestions(true)}
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                             />
@@ -207,9 +216,11 @@ const DashboardLayout = () => {
                         <LanguageSwitcher />
                         <Button
                             type="text"
-                            icon={theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                             onClick={() => dispatch(toggleTheme())}
-                        />
+                            className="text-gray-700 dark:text-yellow-300"
+                        >
+                            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                        </Button>
                         <Dropdown
                             overlay={userMenu}
                             trigger={['click']}
@@ -222,19 +233,26 @@ const DashboardLayout = () => {
                                 transition={{ type: 'spring', stiffness: 200 }}
                                 src="https://i.pravatar.cc/40"
                                 alt="avatar"
-                                className="rounded-full w-8 h-8 cursor-pointer ring-2 ring-blue-500"
+                                className="rounded-full w-8 h-8 cursor-pointer ring-2 ring-blue-500 dark:ring-blue-400"
                             />
                         </Dropdown>
                     </div>
                 </Header>
 
                 <Content className="p-6 bg-gray-50 dark:bg-[#1a1a1a] text-black dark:text-white">
-                    <Breadcrumb className="mb-4">
+                    <Breadcrumb className="mb-4 text-gray-700 dark:text-gray-200">
                         <Breadcrumb.Item>
-                            <Link to="/">Home</Link>
+                            <Link
+                                to="/"
+                                className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+                            >
+                                Home
+                            </Link>
                         </Breadcrumb.Item>
                         {breadcrumbs.map((crumb, index) => (
-                            <Breadcrumb.Item key={index}>{crumb}</Breadcrumb.Item>
+                            <Breadcrumb.Item key={index}>
+                                <span className="text-gray-700 dark:text-gray-200 capitalize">{crumb}</span>
+                            </Breadcrumb.Item>
                         ))}
                     </Breadcrumb>
                     <motion.div
