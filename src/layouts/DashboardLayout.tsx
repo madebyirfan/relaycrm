@@ -1,5 +1,14 @@
-// File: src/layouts/DashboardLayout.tsx
-import { Layout, Input, Dropdown, Menu, Button, Breadcrumb } from 'antd';
+// Complete & Updated: src/layouts/DashboardLayout.tsx
+import {
+    Layout,
+    Input,
+    Dropdown,
+    Menu,
+    Button,
+    Breadcrumb,
+    Drawer,
+    Badge,
+} from 'antd';
 import { useEffect, useState } from 'react';
 import {
     Menu as LucideMenu,
@@ -8,8 +17,11 @@ import {
     Search,
     Settings,
     LayoutDashboard,
+    LogOut,
+    User,
+    Bell,
 } from 'lucide-react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleTheme } from '../store/themeSlice';
 import type { RootState } from '../store';
@@ -18,28 +30,28 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import { motion } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import { setSearchQuery } from '../store/searchSlice';
+import { auth } from '../firebase/config';
 import 'react-toastify/dist/ReactToastify.css';
+import PageLoadingBar from '../components/PageLoadingBar';
 
 const { Header, Sider, Content } = Layout;
 
 const DashboardLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [drawerVisible, setDrawerVisible] = useState(false);
     const theme = useSelector((state: RootState) => state.theme.value);
+    const query = useSelector((state: RootState) => state.search.query);
     const dispatch = useDispatch();
     const location = useLocation();
-    const query = useSelector((state: RootState) => state.search.query);
+    const navigate = useNavigate();
 
-    const userRole = 'admin'; // this should ideally come from auth state
-
-    const userMenu = (
-        <Menu>
-            <Menu.Item key="profile">Profile</Menu.Item>
-            <Menu.Item key="logout">Logout</Menu.Item>
-        </Menu>
-    );
-
+    const userRole = 'admin';
     const breadcrumbs = location.pathname.split('/').filter(Boolean);
+
+    const [searchResults, setSearchResults] = useState<string[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
@@ -52,9 +64,63 @@ const DashboardLayout = () => {
         dispatch(setSearchQuery(''));
     }, [location.pathname]);
 
+    useEffect(() => {
+        if (!query) {
+            setSearchResults([]);
+            setShowSuggestions(false);
+            return;
+        }
+        const allData = ['Dashboard', 'Settings', 'Profile', 'Logout', 'Users', 'Roles'];
+        const filtered = allData.filter((item) =>
+            item.toLowerCase().includes(query.toLowerCase())
+        );
+        setSearchResults(filtered);
+        setShowSuggestions(true);
+    }, [query]);
+
+    const handleLogout = async () => {
+        await auth.signOut();
+        navigate('/login');
+    };
+
+    const userMenu = (
+        <Menu
+            className="dark:bg-[#2a2a2a] dark:text-white shadow-lg"
+            items={[
+                {
+                    key: 'profile',
+                    label: <span className="hover:text-blue-500">Profile</span>,
+                    icon: <User size={16} />,
+                },
+                {
+                    key: 'logout',
+                    label: (
+                        <span onClick={handleLogout} className="text-red-500 hover:text-red-600">
+                            Logout
+                        </span>
+                    ),
+                    icon: <LogOut size={16} />,
+                },
+            ]}
+        />
+    );
+
+    const notifications = [
+        { id: 1, message: 'New update available' },
+        { id: 2, message: 'System maintenance at 2AM' },
+    ];
+
+    const NotificationDropdown = (
+        <Menu
+            items={notifications.map((n) => ({
+                key: n.id,
+                label: <span>{n.message}</span>,
+            }))}
+        />
+    );
 
     return (
-        <Layout className={clsx('min-h-screen transition-all', theme === 'dark' ? 'dark' : '')}>
+        <Layout className={clsx('min-h-screen transition-all', theme === 'dark' && 'dark')}>
             <Sider
                 collapsible
                 collapsed={collapsed}
@@ -70,8 +136,11 @@ const DashboardLayout = () => {
                     theme={theme === 'dark' ? 'dark' : 'light'}
                     mode="inline"
                     defaultSelectedKeys={[location.pathname]}
+                    className="dark:bg-[#1f1f1f]"
                 >
-                    <Menu.Item key="/" icon={<LayoutDashboard size={18} />}> <Link to="/">Dashboard</Link> </Menu.Item>
+                    <Menu.Item key="/" icon={<LayoutDashboard size={18} />}>
+                        <Link to="/">Dashboard</Link>
+                    </Menu.Item>
                     {userRole === 'admin' && (
                         <Menu.Item key="/settings" icon={<Settings size={18} />}>
                             <Link to="/settings">Settings</Link>
@@ -80,6 +149,7 @@ const DashboardLayout = () => {
                 </Menu>
             </Sider>
 
+            <PageLoadingBar />
             <Layout>
                 <Header className="flex justify-between items-center px-4 bg-white dark:bg-[#141414] shadow">
                     <div className="flex items-center gap-3">
@@ -88,27 +158,71 @@ const DashboardLayout = () => {
                             icon={<LucideMenu size={20} />}
                             onClick={() => setCollapsed(!collapsed)}
                         />
-                        <Input
-                            prefix={<Search size={16} />}
-                            placeholder="Search..."
-                            className="w-64 dark:bg-[#333] dark:text-white"
-                            aria-label="Search"
-                            value={query}
-                            onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-                        />
+                        <div className="relative w-64">
+                            <Input
+                                prefix={<Search size={16} />}
+                                placeholder="Search..."
+                                value={query}
+                                onChange={(e) => dispatch(setSearchQuery(e.target.value))}
+                                className="dark:bg-[#333] dark:text-white dark:placeholder-gray-400"
+                                style={{ background: theme === 'dark' ? '#333' : '#fff' }}
+                                onFocus={() => query && setShowSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                            />
+                            {showSuggestions && (
+                                <motion.ul
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 5 }}
+                                    className="absolute z-50 mt-1 w-full bg-white dark:bg-[#2a2a2a] border border-gray-200 dark:border-gray-600 rounded shadow"
+                                >
+                                    {searchResults.length > 0 ? (
+                                        searchResults.map((item, idx) => (
+                                            <li
+                                                key={idx}
+                                                onMouseDown={() => {
+                                                    navigate('/search');
+                                                    setShowSuggestions(false);
+                                                }}
+                                                className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-700 dark:text-white cursor-pointer"
+                                            >
+                                                {item}
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li className="px-4 py-2 text-gray-400 dark:text-gray-500">
+                                            No results found
+                                        </li>
+                                    )}
+                                </motion.ul>
+                            )}
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
+                        <Dropdown overlay={NotificationDropdown} trigger={['click']}>
+                            <Badge count={notifications.length} size="small">
+                                <Bell className="text-gray-700 dark:text-white cursor-pointer" size={20} />
+                            </Badge>
+                        </Dropdown>
                         <LanguageSwitcher />
                         <Button
                             type="text"
                             icon={theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                             onClick={() => dispatch(toggleTheme())}
                         />
-                        <Dropdown overlay={userMenu} trigger={["click"]}>
-                            <img
+                        <Dropdown
+                            overlay={userMenu}
+                            trigger={['click']}
+                            open={dropdownOpen}
+                            onOpenChange={(open) => setDropdownOpen(open)}
+                        >
+                            <motion.img
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 200 }}
                                 src="https://i.pravatar.cc/40"
                                 alt="avatar"
-                                className="rounded-full w-8 h-8 cursor-pointer"
+                                className="rounded-full w-8 h-8 cursor-pointer ring-2 ring-blue-500"
                             />
                         </Dropdown>
                     </div>
@@ -116,7 +230,9 @@ const DashboardLayout = () => {
 
                 <Content className="p-6 bg-gray-50 dark:bg-[#1a1a1a] text-black dark:text-white">
                     <Breadcrumb className="mb-4">
-                        <Breadcrumb.Item><Link to="/">Home</Link></Breadcrumb.Item>
+                        <Breadcrumb.Item>
+                            <Link to="/">Home</Link>
+                        </Breadcrumb.Item>
                         {breadcrumbs.map((crumb, index) => (
                             <Breadcrumb.Item key={index}>{crumb}</Breadcrumb.Item>
                         ))}

@@ -2,11 +2,13 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import themeReducer from './themeSlice';
 import authReducer from './authSlice';
 import searchReducer from './searchSlice';
+import notificationsReducer from './notificationsSlice';
 
 const rootReducer = combineReducers({
   theme: themeReducer,
   auth: authReducer,
   search: searchReducer,
+  notifications: notificationsReducer,
 });
 
 // Optional: define state type to match reducer structure
@@ -36,6 +38,7 @@ store.subscribe(() => {
         theme: state.theme,
         auth: state.auth,
         search: state.search,
+        notifications: state.notifications,
       })
     );
   } catch (e) {

@@ -1,18 +1,23 @@
-// === src/components/LanguageSwitcher.tsx ===
+// src/components/LanguageSwitcher.tsx
 import { Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
+
+  const handleChange = (value: string) => {
+    i18n.changeLanguage(value);
+  };
+
   return (
     <Select
       defaultValue={i18n.language}
-      onChange={(val) => i18n.changeLanguage(val)}
+      style={{ width: 100 }}
+      onChange={handleChange}
       options={[
         { value: 'en', label: 'English' },
-        { value: 'ar', label: 'عربي' },
+        { value: 'ar', label: 'Arabic' },
       ]}
-      className="w-28"
     />
   );
 };
