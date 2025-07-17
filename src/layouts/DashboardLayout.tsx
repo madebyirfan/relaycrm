@@ -32,6 +32,7 @@ import { setSearchQuery } from '../store/searchSlice';
 import { auth } from '../firebase/config';
 import 'react-toastify/dist/ReactToastify.css';
 import PageLoadingBar from '../components/PageLoadingBar';
+import useAppSelector from '../hooks/useAppSelector';
 
 const { Header, Sider, Content } = Layout;
 
@@ -45,7 +46,7 @@ const DashboardLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const userRole = 'admin';
+    const userRole = useAppSelector((state) => state.auth.role);
     const breadcrumbs = location.pathname.split('/').filter(Boolean);
 
     const [searchResults, setSearchResults] = useState<string[]>([]);
@@ -142,17 +143,89 @@ const DashboardLayout = () => {
                     >
                         <Link to="/">Dashboard</Link>
                     </Menu.Item>
+
+                    <Menu.Item
+                        key="/profile"
+                        icon={<User size={18} className="text-gray-700 dark:text-white" />}
+                    >
+                        <Link to="/profile">Profile</Link>
+                    </Menu.Item>
+
+                    <Menu.Item
+                        key="/projects"
+                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
+                    >
+                        <Link to="/projects">Projects</Link>
+                    </Menu.Item>
+
+                    <Menu.Item
+                        key="/tasks"
+                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
+                    >
+                        <Link to="/tasks">Tasks</Link>
+                    </Menu.Item>
+
+                    <Menu.Item
+                        key="/invoices"
+                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
+                    >
+                        <Link to="/invoices">Invoices</Link>
+                    </Menu.Item>
+
+                    <Menu.Item
+                        key="/chat"
+                        icon={<Bell size={18} className="text-gray-700 dark:text-white" />}
+                    >
+                        <Link to="/chat">Chat</Link>
+                    </Menu.Item>
+
+                    <Menu.Item
+                        key="/timeline"
+                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
+                    >
+                        <Link to="/timeline">Timeline</Link>
+                    </Menu.Item>
+
                     {userRole === 'admin' && (
-                        <Menu.Item
-                            key="/settings"
-                            icon={<Settings size={18} className="text-gray-700 dark:text-white" />}
-                        >
-                            <Link to="/settings">Settings</Link>
-                        </Menu.Item>
+                        <>
+                            <Menu.Item
+                                key="/admin/clients"
+                                icon={<User size={18} className="text-gray-700 dark:text-white" />}
+                            >
+                                <Link to="/admin/clients">Clients</Link>
+                            </Menu.Item>
+
+                            <Menu.Item
+                                key="/admin/projects"
+                                icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
+                            >
+                                <Link to="/admin/projects">Assign Projects</Link>
+                            </Menu.Item>
+
+                            <Menu.Item
+                                key="/admin/dashboard"
+                                icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
+                            >
+                                <Link to="/admin/dashboard">Analytics</Link>
+                            </Menu.Item>
+
+                            <Menu.Item
+                                key="/admin/roles"
+                                icon={<Settings size={18} className="text-gray-700 dark:text-white" />}
+                            >
+                                <Link to="/admin/roles">Manage Roles</Link>
+                            </Menu.Item>
+
+                            <Menu.Item
+                                key="/settings"
+                                icon={<Settings size={18} className="text-gray-700 dark:text-white" />}
+                            >
+                                <Link to="/settings">Settings</Link>
+                            </Menu.Item>
+                        </>
                     )}
                 </Menu>
             </Sider>
-
             <PageLoadingBar />
             <Layout>
                 <Header className="flex justify-between items-center px-4 bg-white dark:bg-[#141414] shadow">

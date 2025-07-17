@@ -22,5 +22,8 @@
   },
   "include": [
     "src", "src/types"
-  ]
+  ],
+  "paths": {
+    "@/*": ["src/*"]
+  }
 }

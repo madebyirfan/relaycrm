@@ -1,15 +1,15 @@
-// File: src/components/PrivateRoute.tsx
+// src/components/RequireRole.tsx
 import { Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import useAppSelector from '../hooks/useAppSelector';
 import { Spin } from 'antd';
 
-interface Props {
+interface RequireRoleProps {
   children: React.ReactNode;
+  role: 'admin' | 'user';
 }
 
-const PrivateRoute = ({ children }: Props) => {
-  const { user, loading } = useSelector((state: RootState) => state.auth);
+const RequireRole = ({ children, role }: RequireRoleProps) => {
+  const { user, loading, role: userRole } = useAppSelector((state) => state.auth);
 
   if (loading) {
     return (
@@ -27,7 +27,11 @@ const PrivateRoute = ({ children }: Props) => {
     return <Navigate to="/verify-email" replace />;
   }
 
+  if (userRole !== role) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
   return <>{children}</>;
 };
 
-export default PrivateRoute;
+export default RequireRole;

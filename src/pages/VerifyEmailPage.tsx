@@ -1,5 +1,3 @@
-// File: src/pages/VerifyEmailPage.tsx
-import { Button } from 'antd';
 import { auth } from '../firebase/config';
 import { sendEmailVerification } from 'firebase/auth';
 import { useState } from 'react';
@@ -19,23 +17,37 @@ const VerifyEmailPage = () => {
   const handleLogout = () => {
     auth.signOut();
     navigate('/login');
-}
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-      <div className="p-6 rounded shadow-md bg-white dark:bg-[#1f1f1f] w-full max-w-md text-center space-y-4">
-        <h2 className="text-2xl font-bold text-black dark:text-white">Verify Your Email</h2>
-        <p className="text-gray-600 dark:text-gray-300">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a] px-4">
+      <div className="bg-white dark:bg-[#2a2a2a] p-8 rounded-xl shadow-lg w-full max-w-md space-y-6 text-center">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Verify Your Email
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
           Please check your inbox to verify your email address.
         </p>
+
         {!sent ? (
-          <Button onClick={handleResend}>Resend Verification Email</Button>
+          <button
+            onClick={handleResend}
+            className="w-full bg-[#1677FF] text-white font-semibold p-3 rounded-md hover:bg-[#0e65d2] transition"
+          >
+            Resend Verification Email
+          </button>
         ) : (
-          <p className="text-green-600 dark:text-green-400">Verification email sent!</p>
+          <p className="text-green-600 dark:text-green-400 font-medium">
+            Verification email sent!
+          </p>
         )}
-        <Button type="link" onClick={handleLogout}>
+
+        <button
+          onClick={handleLogout}
+          className="w-full text-[#1677FF] hover:underline text-sm"
+        >
           Log out
-        </Button>
+        </button>
       </div>
     </div>
   );

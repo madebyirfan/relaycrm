@@ -31,29 +31,37 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a]">
-      <div className="bg-white dark:bg-[#2a2a2a] p-8 rounded-lg shadow w-full max-w-md space-y-4">
-        <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
-          Forgot Password
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-[#1a1a1a] px-4">
+      <div className="bg-white dark:bg-[#2a2a2a] p-8 rounded-xl shadow-lg w-full max-w-md space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white">
+            Forgot Password
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-1">
+            Enter your email to receive a password reset link.
+          </p>
+        </div>
 
         <input
-          className="p-2 w-full border rounded dark:bg-[#333] dark:text-white"
-          placeholder="Enter your email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-md dark:bg-[#333] dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter your email"
         />
 
         <button
           onClick={handleReset}
           disabled={loading}
-          className="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700 disabled:opacity-60"
+          className="w-full bg-[#1677FF] text-white font-semibold p-3 rounded-md hover:bg-[#0e65d2] transition disabled:opacity-50"
         >
           {loading ? 'Sending...' : 'Send Reset Link'}
         </button>
 
-        <p className="text-sm text-center text-blue-500 mt-2 hover:underline cursor-pointer" onClick={() => window.history.back()}>
+        <p
+          onClick={() => window.history.back()}
+          className="text-sm text-center text-[#1677FF] cursor-pointer hover:underline"
+        >
           Back to Login
         </p>
       </div>

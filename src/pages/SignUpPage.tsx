@@ -1,21 +1,37 @@
 import { useState } from 'react';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from 'firebase/auth';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { auth } from '../firebase/config';
 import { Input, Button, message } from 'antd';
 import { CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SignupImage from '../assets/images/signup.png'; // ✅ Replace with actual path
 
 const SignUpPage = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  const validateEmail = (email: string): boolean =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSignup = async () => {
+    if (!name.trim()) {
+      message.warning('Please enter your full name.');
+      return;
+    }
     if (!validateEmail(email)) {
       message.warning('Please enter a valid email address.');
       return;
@@ -24,12 +40,26 @@ const SignUpPage = () => {
       message.warning('Password must be at least 6 characters.');
       return;
     }
+    if (password !== repeatPassword) {
+      message.warning('Passwords do not match.');
+      return;
+    }
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);   
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      // 🔐 Send verification email
+      await updateProfile(userCredential.user, { displayName: name });
+
+      const db = getFirestore();
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        name,
+        email,
+        role: 'user',
+        createdAt: serverTimestamp(),
+      });
+
       await sendEmailVerification(userCredential.user);
       setSuccess(true);
     } catch (error: any) {
@@ -37,10 +67,10 @@ const SignUpPage = () => {
         error.code === 'auth/email-already-in-use'
           ? 'This email is already in use.'
           : error.code === 'auth/weak-password'
-          ? 'Password is too weak.'
-          : error.code === 'auth/invalid-email'
-          ? 'Invalid email format.'
-          : error.message || 'Signup failed.';
+            ? 'Password is too weak.'
+            : error.code === 'auth/invalid-email'
+              ? 'Invalid email format.'
+              : error.message || 'Signup failed.';
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -48,61 +78,103 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-      <div className="p-6 rounded shadow-md bg-white dark:bg-[#1f1f1f] w-full max-w-md space-y-6">
-        {success ? (
-          <div className="text-center">
-            <CheckCircle className="mx-auto text-green-500" size={48} />
-            <h2 className="text-xl font-bold mt-4 text-black dark:text-white">
-              Account Created
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              A verification email has been sent to <strong>{email}</strong>.
-              <br />
-              Please check your inbox to verify your account.
-            </p>
-            <Link to="/login">
-              <Button type="primary" className="mt-4">
-                Go to Login
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-center text-black dark:text-white">
-              Sign Up
-            </h2>
-            <Input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              status={!email || validateEmail(email) ? '' : 'error'}
-              aria-label="Email"
-            />
-            <Input.Password
-              placeholder="Password (min 6 characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              status={!password || password.length >= 6 ? '' : 'error'}
-              aria-label="Password"
-            />
-            <Button
-              type="primary"
-              block
-              onClick={handleSignup}
-              loading={loading}
-              disabled={!email || !password}
-            >
-              Create Account
-            </Button>
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 hover:underline">
-                Login here
+    <div className="flex min-h-screen">
+      {/* Form Section */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 py-10 bg-white dark:bg-gray-900">
+        {/* Brand */}
+        <div className="absolute top-6 left-6 text-xl font-semibold text-[#1677FF]">
+          RealyCRM
+        </div>
+
+        <div className="max-w-md mx-auto w-full space-y-6">
+          {success ? (
+            <div className="text-center">
+              <CheckCircle className="mx-auto text-green-500" size={48} />
+              <h2 className="text-xl font-bold mt-4 text-black dark:text-white">
+                Account Created
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                A verification email has been sent to <strong>{email}</strong>.
+                <br />
+                Please check your inbox to verify your account.
+              </p>
+              <Link to="/login">
+                <Button type="primary" className="mt-4 bg-[#1677FF] hover:bg-[#146de2]">
+                  Go to Login
+                </Button>
               </Link>
-            </p>
-          </>
-        )}
+            </div>
+          ) : (
+            <>
+              <h2 className="text-3xl font-bold text-black dark:text-white">
+                Welcome back
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400">
+                Create a free account
+              </p>
+
+              <div className="space-y-4">
+                <Input
+                  size="large"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="p-3 w-full border rounded-md dark:bg-[#333] dark:text-white"
+                />
+                <Input
+                  size="large"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  status={!email || validateEmail(email) ? '' : 'error'}
+                  className="p-3 w-full border rounded-md dark:bg-[#333] dark:text-white"
+                />
+                <Input.Password
+                  size="large"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  status={!password || password.length >= 6 ? '' : 'error'}
+                  className="p-3 w-full border rounded-md dark:bg-[#333] dark:text-white"
+                />
+                <Input.Password
+                  size="large"
+                  placeholder="Repeat password"
+                  value={repeatPassword}
+                  onChange={(e) => setRepeatPassword(e.target.value)}
+                  status={repeatPassword === password ? '' : 'error'}
+                  className="p-3 w-full border rounded-md dark:bg-[#333] dark:text-white"
+                />
+              </div>
+              <Button
+                type="primary"
+                size="large"
+                block
+                onClick={handleSignup}
+                loading={loading}
+                disabled={!email || !password || !repeatPassword || !name}
+                className="!bg-[#1677FF] !hover:bg-[#146de2] !text-white rounded-md"
+              >
+                Sign up
+              </Button>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                Already have an account?{' '}
+                <Link to="/login" className="text-[#1677FF] hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Image Section */}
+      <div className="hidden lg:flex w-1/2 items-center justify-center bg-[#E6F0FF] dark:bg-[#0F1E3F]">
+        <img
+          src={SignupImage}
+          alt="Signup Illustration"
+          className="max-w-[500px] w-full object-contain"
+        />
       </div>
     </div>
   );
