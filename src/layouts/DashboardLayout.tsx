@@ -47,6 +47,7 @@ const DashboardLayout = () => {
     const navigate = useNavigate();
 
     const userRole = useAppSelector((state) => state.auth.role);
+    const userImage = useAppSelector((state) => state.auth.user?.photoURL);
     const breadcrumbs = location.pathname.split('/').filter(Boolean);
 
     const [searchResults, setSearchResults] = useState<string[]>([]);
@@ -82,41 +83,99 @@ const DashboardLayout = () => {
         navigate('/login');
     };
 
-    const userMenu = (
-        <Menu
-            className="dark:bg-[#2a2a2a] dark:text-white shadow-lg"
-            items={[
-                {
-                    key: 'profile',
-                    label: <span className="text-gray-800 dark:text-gray-100">Profile</span>,
-                    icon: <User size={16} />,
-                },
-                {
-                    key: 'logout',
-                    label: (
-                        <span onClick={handleLogout} className="text-red-500 hover:text-red-600">
-                            Logout
-                        </span>
-                    ),
-                    icon: <LogOut size={16} />,
-                },
-            ]}
-        />
-    );
+    const userMenuItems = [
+        {
+            key: 'profile',
+            label: <span className="text-gray-800 dark:text-gray-100">Profile</span>,
+            icon: <User size={16} />,
+        },
+        {
+            key: 'logout',
+            label: (
+                <span onClick={handleLogout} className="text-red-500 hover:text-red-600">
+                    Logout
+                </span>
+            ),
+            icon: <LogOut size={16} />,
+        },
+    ];
 
     const notifications = [
         { id: 1, message: 'New update available' },
         { id: 2, message: 'System maintenance at 2AM' },
     ];
 
-    const NotificationDropdown = (
-        <Menu
-            items={notifications.map((n) => ({
-                key: n.id,
-                label: <span>{n.message}</span>,
-            }))}
-        />
-    );
+    const notificationItems = notifications.map((n) => ({
+        key: n.id,
+        label: <span>{n.message}</span>,
+    }));
+
+    const menuItems = [
+        {
+            key: '/',
+            icon: <LayoutDashboard size={18} className="text-gray-700 dark:text-white" />,
+            label: <Link to="/">Dashboard</Link>,
+        },
+        {
+            key: '/profile',
+            icon: <User size={18} className="text-gray-700 dark:text-white" />,
+            label: <Link to="/profile">Profile</Link>,
+        },
+        {
+            key: '/projects',
+            icon: <LayoutDashboard size={18} className="text-gray-700 dark:text-white" />,
+            label: <Link to="/projects">Projects</Link>,
+        },
+        {
+            key: '/tasks',
+            icon: <LayoutDashboard size={18} className="text-gray-700 dark:text-white" />,
+            label: <Link to="/tasks">Tasks</Link>,
+        },
+        {
+            key: '/invoices',
+            icon: <LayoutDashboard size={18} className="text-gray-700 dark:text-white" />,
+            label: <Link to="/invoices">Invoices</Link>,
+        },
+        {
+            key: '/chat',
+            icon: <Bell size={18} className="text-gray-700 dark:text-white" />,
+            label: <Link to="/chat">Chat</Link>,
+        },
+        {
+            key: '/timeline',
+            icon: <LayoutDashboard size={18} className="text-gray-700 dark:text-white" />,
+            label: <Link to="/timeline">Timeline</Link>,
+        },
+        ...(userRole === 'admin'
+            ? [
+                {
+                    key: '/admin/clients',
+                    icon: <User size={18} className="text-gray-700 dark:text-white" />,
+                    label: <Link to="/admin/clients">Clients</Link>,
+                },
+                {
+                    key: '/admin/projects',
+                    icon: <LayoutDashboard size={18} className="text-gray-700 dark:text-white" />,
+                    label: <Link to="/admin/projects">Assign Projects</Link>,
+                },
+                {
+                    key: '/admin/dashboard',
+                    icon: <LayoutDashboard size={18} className="text-gray-700 dark:text-white" />,
+                    label: <Link to="/admin/dashboard">Analytics</Link>,
+                },
+                {
+                    key: '/admin/roles',
+                    icon: <Settings size={18} className="text-gray-700 dark:text-white" />,
+                    label: <Link to="/admin/roles">Manage Roles</Link>,
+                },
+                {
+                    key: '/settings',
+                    icon: <Settings size={18} className="text-gray-700 dark:text-white" />,
+                    label: <Link to="/settings">Settings</Link>,
+                },
+            ]
+            : []),
+    ];
 
     return (
         <Layout className={clsx('min-h-screen transition-all', theme === 'dark' && 'dark')}>
@@ -134,99 +193,14 @@ const DashboardLayout = () => {
                 <Menu
                     theme={theme === 'dark' ? 'dark' : 'light'}
                     mode="inline"
-                    defaultSelectedKeys={[location.pathname]}
+                    selectedKeys={[location.pathname]}
                     className="dark:bg-[#1f1f1f]"
-                >
-                    <Menu.Item
-                        key="/"
-                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
-                    >
-                        <Link to="/">Dashboard</Link>
-                    </Menu.Item>
-
-                    <Menu.Item
-                        key="/profile"
-                        icon={<User size={18} className="text-gray-700 dark:text-white" />}
-                    >
-                        <Link to="/profile">Profile</Link>
-                    </Menu.Item>
-
-                    <Menu.Item
-                        key="/projects"
-                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
-                    >
-                        <Link to="/projects">Projects</Link>
-                    </Menu.Item>
-
-                    <Menu.Item
-                        key="/tasks"
-                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
-                    >
-                        <Link to="/tasks">Tasks</Link>
-                    </Menu.Item>
-
-                    <Menu.Item
-                        key="/invoices"
-                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
-                    >
-                        <Link to="/invoices">Invoices</Link>
-                    </Menu.Item>
-
-                    <Menu.Item
-                        key="/chat"
-                        icon={<Bell size={18} className="text-gray-700 dark:text-white" />}
-                    >
-                        <Link to="/chat">Chat</Link>
-                    </Menu.Item>
-
-                    <Menu.Item
-                        key="/timeline"
-                        icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
-                    >
-                        <Link to="/timeline">Timeline</Link>
-                    </Menu.Item>
-
-                    {userRole === 'admin' && (
-                        <>
-                            <Menu.Item
-                                key="/admin/clients"
-                                icon={<User size={18} className="text-gray-700 dark:text-white" />}
-                            >
-                                <Link to="/admin/clients">Clients</Link>
-                            </Menu.Item>
-
-                            <Menu.Item
-                                key="/admin/projects"
-                                icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
-                            >
-                                <Link to="/admin/projects">Assign Projects</Link>
-                            </Menu.Item>
-
-                            <Menu.Item
-                                key="/admin/dashboard"
-                                icon={<LayoutDashboard size={18} className="text-gray-700 dark:text-white" />}
-                            >
-                                <Link to="/admin/dashboard">Analytics</Link>
-                            </Menu.Item>
-
-                            <Menu.Item
-                                key="/admin/roles"
-                                icon={<Settings size={18} className="text-gray-700 dark:text-white" />}
-                            >
-                                <Link to="/admin/roles">Manage Roles</Link>
-                            </Menu.Item>
-
-                            <Menu.Item
-                                key="/settings"
-                                icon={<Settings size={18} className="text-gray-700 dark:text-white" />}
-                            >
-                                <Link to="/settings">Settings</Link>
-                            </Menu.Item>
-                        </>
-                    )}
-                </Menu>
+                    items={menuItems}
+                />
             </Sider>
+
             <PageLoadingBar />
+
             <Layout>
                 <Header className="flex justify-between items-center px-4 bg-white dark:bg-[#141414] shadow">
                     <div className="flex items-center gap-3">
@@ -281,7 +255,7 @@ const DashboardLayout = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Dropdown overlay={NotificationDropdown} trigger={['click']}>
+                        <Dropdown menu={{ items: notificationItems }} trigger={['click']}>
                             <Badge count={notifications.length} size="small">
                                 <Bell className="text-gray-700 dark:text-white cursor-pointer" size={20} />
                             </Badge>
@@ -295,7 +269,7 @@ const DashboardLayout = () => {
                             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                         </Button>
                         <Dropdown
-                            overlay={userMenu}
+                            menu={{ items: userMenuItems }}
                             trigger={['click']}
                             open={dropdownOpen}
                             onOpenChange={(open) => setDropdownOpen(open)}
@@ -304,7 +278,7 @@ const DashboardLayout = () => {
                                 initial={{ scale: 0.8 }}
                                 animate={{ scale: 1 }}
                                 transition={{ type: 'spring', stiffness: 200 }}
-                                src="https://i.pravatar.cc/40"
+                                src={userImage || 'https://i.pravatar.cc/40'}
                                 alt="avatar"
                                 className="rounded-full w-8 h-8 cursor-pointer ring-2 ring-blue-500 dark:ring-blue-400"
                             />
@@ -313,21 +287,27 @@ const DashboardLayout = () => {
                 </Header>
 
                 <Content className="p-6 bg-gray-50 dark:bg-[#1a1a1a] text-black dark:text-white">
-                    <Breadcrumb className="mb-4 text-gray-700 dark:text-gray-200">
-                        <Breadcrumb.Item>
-                            <Link
-                                to="/"
-                                className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
-                            >
-                                Home
-                            </Link>
-                        </Breadcrumb.Item>
-                        {breadcrumbs.map((crumb, index) => (
-                            <Breadcrumb.Item key={index}>
-                                <span className="text-gray-700 dark:text-gray-200 capitalize">{crumb}</span>
-                            </Breadcrumb.Item>
-                        ))}
-                    </Breadcrumb>
+                    <Breadcrumb
+                        items={[
+                            {
+                                title: (
+                                    <Link
+                                        to="/"
+                                        className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+                                    >
+                                        Home
+                                    </Link>
+                                ),
+                            },
+                            ...breadcrumbs.map((crumb) => ({
+                                title: (
+                                    <span className="capitalize text-gray-700 dark:text-gray-200">
+                                        {crumb}
+                                    </span>
+                                ),
+                            })),
+                        ]}
+                    />
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

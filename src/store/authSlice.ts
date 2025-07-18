@@ -1,10 +1,18 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import { auth } from '../firebase/client';
 
+export interface SerializedUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  emailVerified: boolean;
+}
+
 export interface AuthState {
-  user: User | null;
+  user: SerializedUser | null;
   role: string | null;
   loading: boolean;
 }
@@ -15,14 +23,21 @@ const initialState: AuthState = {
   loading: true,
 };
 
-// ✅ Thunk: Auth state listener + Firestore role fetch
 export const fetchUserAndRole = createAsyncThunk<void, void>(
   'auth/fetchUserAndRole',
   async (_, { dispatch }) => {
     return new Promise<void>((resolve) => {
       onAuthStateChanged(auth, async (firebaseUser) => {
         if (firebaseUser) {
-          dispatch(setUser(firebaseUser));
+          const serializedUser: SerializedUser = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+            emailVerified: firebaseUser.emailVerified,
+          };
+          dispatch(setUser(serializedUser));
+
           try {
             const db = getFirestore();
             const roleSnap = await getDoc(doc(db, 'userRoles', firebaseUser.uid));
@@ -30,7 +45,7 @@ export const fetchUserAndRole = createAsyncThunk<void, void>(
             dispatch(setRole(role));
           } catch (error) {
             console.error('Error fetching user role:', error);
-            dispatch(setRole('user')); // fallback
+            dispatch(setRole('user'));
           }
         } else {
           dispatch(clearUser());
@@ -45,7 +60,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User | null>) => {
+    setUser: (state, action: PayloadAction<SerializedUser | null>) => {
       state.user = action.payload;
       state.loading = false;
     },

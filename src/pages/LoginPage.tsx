@@ -18,11 +18,13 @@ const LoginPage = () => {
       toast.error('Please enter both email and password');
       return false;
     }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error('Please enter a valid email address');
       return false;
     }
+
     return true;
   };
 
@@ -34,13 +36,15 @@ const LoginPage = () => {
 
       if (!user.emailVerified) {
         toast.warning('Please verify your email before logging in.');
+        setLoading(false); // ✅ FIX: stop spinner
         return;
       }
 
       toast.success('Logged in successfully!');
       navigate('/');
-    } catch (err: any) {
-      const errorMessage = err?.message || 'Login failed';
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Login failed';
       toast.error(errorMessage);
     } finally {
       setLoading(false);

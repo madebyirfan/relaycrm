@@ -24,6 +24,9 @@
     "src", "src/types"
   ],
   "paths": {
-    "@/*": ["src/*"]
+    "baseUrl": ".",
+    "@/*": [
+      "src/*"
+    ]
   }
 }

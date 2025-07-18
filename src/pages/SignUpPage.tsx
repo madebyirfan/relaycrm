@@ -14,7 +14,8 @@ import { auth } from '../firebase/config';
 import { Input, Button, message } from 'antd';
 import { CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import SignupImage from '../assets/images/signup.png'; // ✅ Replace with actual path
+import SignupImage from '../assets/images/signup.png';
+import { FirebaseError } from 'firebase-admin';
 
 const SignUpPage = () => {
   const [name, setName] = useState('');
@@ -46,32 +47,42 @@ const SignUpPage = () => {
     }
 
     setLoading(true);
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
+      console.log('✅ User created:', userCredential);
+      // Add name to user profile
       await updateProfile(userCredential.user, { displayName: name });
 
+      // Create user document in Firestore
       const db = getFirestore();
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         uid: userCredential.user.uid,
         name,
         email,
-        role: 'user',
+        role: 'admin',
         createdAt: serverTimestamp(),
       });
 
       await sendEmailVerification(userCredential.user);
+
+      message.success('Signup successful! Please check your email to verify your account.');
       setSuccess(true);
     } catch (error: any) {
-      const errorMessage =
-        error.code === 'auth/email-already-in-use'
-          ? 'This email is already in use.'
-          : error.code === 'auth/weak-password'
-            ? 'Password is too weak.'
-            : error.code === 'auth/invalid-email'
-              ? 'Invalid email format.'
-              : error.message || 'Signup failed.';
-      message.error(errorMessage);
+      const errorCode = (error as FirebaseError).code;
+
+      let friendlyMessage = 'Something went wrong. Please try again.';
+      if (errorCode === 'auth/email-already-in-use') {
+        friendlyMessage = 'This email address is already in use.';
+      } else if (errorCode === 'auth/invalid-email') {
+        friendlyMessage = 'Invalid email address.';
+      } else if (errorCode === 'auth/weak-password') {
+        friendlyMessage = 'Password is too weak. Minimum 6 characters required.';
+      } else if (errorCode === 'auth/network-request-failed') {
+        friendlyMessage = 'Network error. Please check your internet connection.';
+      }
+
+      message.error(friendlyMessage);
     } finally {
       setLoading(false);
     }
